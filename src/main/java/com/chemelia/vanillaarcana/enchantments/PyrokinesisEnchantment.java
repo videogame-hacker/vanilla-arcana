@@ -11,10 +11,14 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.SmallFireball;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeConfig.Server;
 
@@ -66,6 +70,32 @@ public class PyrokinesisEnchantment extends Enchantment {
 
     public PyrokinesisEnchantment() {
         super(Rarity.UNCOMMON, RegistryHandler.WAND_CATEGORY, new EquipmentSlot[]{EquipmentSlot.MAINHAND});
+    }
+
+    // Handles a right click :)
+    // See WandItem#use
+    public boolean handleUse(Level world, Player player, ItemStack stack) {
+        if (world.isClientSide()) {
+            return false;
+        }
+
+        int level = EnchantmentHelper.getItemEnchantmentLevel(this, stack);
+
+        Vec3 look = player.getLookAngle();
+        Vec3 pos = player.getEyePosition().add(look.scale(0.9));
+        Vec3 velocity = look.scale(0.5);
+
+        SmallFireball fireball = new SmallFireball(world, player, 0, 0, 0);
+        fireball.setPos(pos.x, pos.y, pos.z);
+        fireball.xPower = velocity.x;
+        fireball.yPower = velocity.y;
+        fireball.zPower = velocity.z;
+
+        world.addFreshEntity(fireball);
+
+        player.getCooldowns().addCooldown(stack.getItem(), 20 / level);
+
+        return true;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.chemelia.vanillaarcana.item.custom;
 
 import com.chemelia.vanillaarcana.RegistryHandler;
+import com.chemelia.vanillaarcana.enchantments.PyrokinesisEnchantment;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -30,25 +31,11 @@ public class WandItem extends Item {
             return InteractionResultHolder.pass(player.getItemInHand(pUsedHand));
 
         // TODO: Probably put this in, like, its own handler thing for Pyrokinesis :)
-        int pyrokinesisLevel = EnchantmentHelper.getItemEnchantmentLevel(RegistryHandler.PYROKINESIS.get(), stack);
-        if (pyrokinesisLevel != 0) {
-            if (!world.isClientSide()) {
-                Vec3 look = player.getLookAngle();
-                Vec3 pos = player.getEyePosition().add(look.scale(0.9));
-                Vec3 velocity = look.scale(0.5);
 
-                SmallFireball fireball = new SmallFireball(world, player, 0, 0, 0);
-                fireball.setPos(pos.x, pos.y, pos.z);
-                fireball.xPower = velocity.x;
-                fireball.yPower = velocity.y;
-                fireball.zPower = velocity.z;
-
-                world.addFreshEntity(fireball);
-
-                player.getCooldowns().addCooldown(this, 20 / pyrokinesisLevel);
-
-                return InteractionResultHolder.success(stack);
-            }
+        PyrokinesisEnchantment pyrokinesis = RegistryHandler.PYROKINESIS.get();
+        int pyrokinesisLevel = EnchantmentHelper.getItemEnchantmentLevel(pyrokinesis, stack);
+        if (pyrokinesisLevel != 0 && pyrokinesis.handleUse(world, player, stack)) {
+            return InteractionResultHolder.success(stack);
         }
 
         return InteractionResultHolder.pass(player.getItemInHand(pUsedHand));
